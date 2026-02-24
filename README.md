@@ -192,12 +192,12 @@ flowchart TD
 ```mermaid
 stateDiagram-v2
     [*] --> UNREAD : Signal detected by worker
-    UNREAD --> DRAFTING : User clicks "Draft Action"\n(Vercel API call)
+    UNREAD --> DRAFTING : User clicks 'Draft Action' <br/> (Vercel API call)
     UNREAD --> IGNORED : User dismisses signal
-    DRAFTING --> AWAITING_APPROVAL : Gemini draft generated\n(copy_drafter.py)
-    AWAITING_APPROVAL --> APPROVED_FOR_SEND : ✅ User clicks "Approve & Send"\n(HITL — UI only)
+    DRAFTING --> AWAITING_APPROVAL : Gemini draft generated <br/> (copy_drafter.py)
+    AWAITING_APPROVAL --> APPROVED_FOR_SEND : ✅ User clicks 'Approve & Send' <br/> (HITL — UI only)
     AWAITING_APPROVAL --> DRAFTING : User requests re-draft
-    APPROVED_FOR_SEND --> SENT : Message dispatched\n(v1.1: Gmail / HubSpot)
+    APPROVED_FOR_SEND --> SENT : Message dispatched <br/> (v1.1 Gmail / HubSpot)
     SENT --> [*] : RLHF sync → Qdrant
 
     note right of AWAITING_APPROVAL
