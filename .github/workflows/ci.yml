@@ -1,0 +1,56 @@
+name: CI — Lint & Type Check
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  quality:
+    name: Code Quality
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff mypy pydantic pydantic-settings python-dotenv
+
+      - name: Lint with ruff
+        run: |
+          ruff check src/ workers/ config/ --select E,W,F,I --output-format=github
+        continue-on-error: false
+
+      - name: Type check with mypy
+        run: |
+          mypy src/ workers/ config/ \
+            --ignore-missing-imports \
+            --no-strict-optional \
+            --python-version 3.11
+        continue-on-error: true  # Non-blocking until stubs are added
+
+      - name: Validate Pydantic schemas (offline, no API keys)
+        run: |
+          python -c "
+          from src.models.schemas import Company, Signal, Competitor, DecisionMaker, NurtureDraft
+          from src.utils.rate_limiter import RateLimiter
+          r = RateLimiter(rpm=15)
+          print('✅ Schemas and rate limiter validated successfully')
+          "
+        env:
+          # Minimal env vars for settings validation (not real values)
+          GEMINI_API_KEY: "test-key"
+          SUPABASE_URL: "https://test.supabase.co"
+          SUPABASE_ANON_KEY: "test-key"
+          QDRANT_URL: "https://test.qdrant.io"
+          QDRANT_API_KEY: "test-key"

@@ -1,15 +1,64 @@
-venv/
+# ─────────────────────────────────────────────────────────────────────────────
+# Project Signal — .gitignore
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Environment & secrets — NEVER commit
 .env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# Python
 __pycache__/
-*.pyc
-data/output/*.csv
-.pytest_cache/
-.coverage
-htmlcov/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+.venv/
+ENV/
+pip-wheel-metadata/
+*.egg-info/
 dist/
 build/
-*.egg-info/
+.eggs/
+
+# Test coverage
+.coverage
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Data & outputs (local only)
+data/
+*.db
+*.sqlite
+*.csv
+*.json.bak
+
+# Playwright browsers
+.playwright/
+playwright-report/
+
+# Sentence-transformers model cache
+.cache/
+models_cache/
+
+# IDE
 .vscode/
 .idea/
-*.db
+*.swp
+*.swo
+.DS_Store
+
+# Logs
 *.log
+logs/
+
+# Node (Vercel frontend)
+node_modules/
+.next/
+out/
