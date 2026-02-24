@@ -1,21 +1,47 @@
-MIT License
+PROPRIETARY AND CONFIDENTIAL
 
-Copyright (c) 2026 Amin
+Copyright (c) 2026 Amin — Project Signal
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+ALL RIGHTS RESERVED.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+NOTICE: This software and its source code, documentation, architecture,
+database schemas, prompt engineering, workflow designs, and all associated
+intellectual property (collectively, the "Software") are the exclusive
+proprietary and confidential property of the copyright holder.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+RESTRICTIONS:
+1. CONFIDENTIALITY. The Software is strictly confidential. You may not
+   disclose, share, publish, or make available any portion of the Software
+   to any third party without the prior written consent of the copyright holder.
+
+2. NO DISTRIBUTION. You may not distribute, sublicense, sell, transfer,
+   assign, rent, lease, or otherwise make available the Software or any
+   derivative works thereof to any third party.
+
+3. NO MODIFICATION WITHOUT CONSENT. You may not modify, adapt, translate,
+   decompile, disassemble, reverse engineer, or create derivative works
+   based on the Software without the prior written consent of the copyright holder.
+
+4. AUTHORIZED USE ONLY. Access to this Software is granted solely to
+   authorized personnel under a signed Non-Disclosure Agreement (NDA).
+   Unauthorized access, use, or reproduction is strictly prohibited and
+   may result in severe civil and criminal penalties.
+
+5. NO OPEN-SOURCE GRANT. Nothing in this notice constitutes a grant of
+   any open-source rights. This is NOT open-source software.
+
+DISCLAIMER:
+THE SOFTWARE IS PROVIDED "AS IS" FOR AUTHORIZED INTERNAL USE ONLY.
+THE COPYRIGHT HOLDER MAKES NO WARRANTIES, EXPRESS OR IMPLIED, AND
+ACCEPTS NO LIABILITY FOR ANY UNAUTHORIZED USE OF THIS SOFTWARE.
+
+For licensing inquiries or authorized access requests, contact the
+copyright holder through official channels only.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚠  IF YOU HAVE RECEIVED THIS CODE WITHOUT AUTHORIZATION, YOU ARE
+   REQUIRED TO DELETE IT IMMEDIATELY AND NOTIFY THE COPYRIGHT HOLDER.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Project Signal — Confidential Internal Platform
+© 2026 Amin. All rights reserved.
