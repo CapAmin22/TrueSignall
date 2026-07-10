@@ -11,6 +11,8 @@ import { classifyJobTitle } from "@/lib/signals/hiring-map";
 import { classifyHeadline } from "@/lib/signals/classifiers";
 import { normalizeDomain } from "@/lib/utils";
 import { SIGNAL_TYPES } from "@/lib/signals/taxonomy";
+import { isAdminConfigured, createAdminClient } from "@/lib/supabase/admin";
+import { persistSignal } from "@/lib/ingest/persist";
 
 const itemSchema = z.object({
   domain: z.string(),
@@ -33,6 +35,7 @@ export async function POST(request: Request) {
 
   try {
     const body = bodySchema.parse(await request.json());
+    const db = isAdminConfigured() ? createAdminClient() : null;
     const seen = new Set<string>();
     let created = 0;
     let deduped = 0;
@@ -62,12 +65,24 @@ export async function POST(request: Request) {
         if (cls.isSignal && cls.type) item.payload.reclassified_as = cls.type;
       }
 
-      // Configured deployment: unique-upsert into signals + fanout to
-      // signal_deliveries via the service role. Prototype counts only.
-      created++;
+      if (!db) {
+        created++; // demo mode: validate + classify only
+        continue;
+      }
+      const outcome = await persistSignal(db, {
+        domain,
+        type: item.type,
+        title: item.title,
+        payload: item.payload,
+        source: body.source_key,
+        source_url: item.source_url,
+        occurred_at: item.occurred_at,
+      });
+      if (outcome === "created") created++;
+      else deduped++;
     }
 
-    return Response.json({ created, deduped });
+    return Response.json({ created, deduped, persisted: Boolean(db) });
   } catch (err) {
     if (err instanceof z.ZodError) {
       return errorResponse(new AppError("VALIDATION", "Invalid batch payload.", { issues: err.issues }));

@@ -21,7 +21,7 @@ import {
 } from "@/app/actions/ai";
 import type { DraftSections } from "@/lib/ai/validate";
 import type { FeedItem } from "@/components/signal/SignalCard";
-import { useDemoStore, workspace } from "@/lib/demo/store";
+import { useDemoStore } from "@/lib/demo/store";
 import { WHY_LINE_FALLBACKS } from "@/lib/signals/taxonomy";
 
 const SECTION_LABELS: { key: keyof DraftSections; label: string }[] = [
@@ -65,6 +65,7 @@ export function DraftComposer({
   );
 
   const ctx: DraftContext = useMemo(() => {
+    const workspace = store.workspace;
     const priorCount = store.messages.filter((m) => m.account_id === primary.account.id).length;
     const stage =
       primary.account.re_engage
@@ -93,7 +94,7 @@ export function DraftComposer({
       voiceFeatures: "{}",
       exemplars: [],
     };
-  }, [items, primary, contact, store.messages]);
+  }, [items, primary, contact, store.messages, store.workspace]);
 
   useEffect(() => {
     if (!store.incrementDrafts()) {

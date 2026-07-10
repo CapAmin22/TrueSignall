@@ -1,10 +1,17 @@
 import { Sidebar, MobileTabBar } from "@/components/layout/Sidebar";
 import { Topbar } from "@/components/layout/Topbar";
 import { DemoProvider } from "@/lib/demo/store";
+import { loadLiveBundle } from "@/lib/live/load";
 
-export default function AppLayout({ children }: { children: React.ReactNode }) {
+// Session-dependent data — never statically prerender the app shell.
+export const dynamic = "force-dynamic";
+
+export default async function AppLayout({ children }: { children: React.ReactNode }) {
+  // Live workspace when Supabase + session exist; demo fixtures otherwise.
+  const bundle = await loadLiveBundle();
+
   return (
-    <DemoProvider>
+    <DemoProvider initialData={bundle}>
       <div className="min-h-screen bg-background">
         <Sidebar />
         <div className="md:pl-60">

@@ -12,6 +12,7 @@ import Papa from "papaparse";
 import { copy } from "@/lib/copy";
 import { cn, normalizeDomain } from "@/lib/utils";
 import { inferICPAction, type InferredICP } from "@/app/actions/ai";
+import { completeOnboardingAction } from "@/app/actions/workspace";
 import { Button } from "@/components/ui/button";
 import { Card, Chip, Input, Skeleton, Textarea } from "@/components/ui/primitives";
 
@@ -81,7 +82,27 @@ export default function OnboardingPage() {
 
   const validCount = useMemo(() => rows.filter((r) => !r.invalid && !r.duplicate).length, [rows]);
 
-  const next = () => (step < 5 ? setStep(step + 1) : router.push("/feed"));
+  const next = () => {
+    if (step < 5) {
+      setStep(step + 1);
+      return;
+    }
+    // Persist workspace + ICP + imports when Supabase is configured
+    // (no-op in demo mode), then enter the feed.
+    startTransition(async () => {
+      try {
+        await completeOnboardingAction({
+          domain: normalizeDomain(domain || "example.com"),
+          oneLiner: oneLiner || "signal-based GTM tool",
+          icp: (icp ?? {}) as unknown as Record<string, unknown>,
+          importDomains: rows.filter((r) => !r.invalid && !r.duplicate).map((r) => r.domain),
+        });
+      } catch {
+        // demo mode or transient failure — the feed still renders
+      }
+      router.push("/feed");
+    });
+  };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">

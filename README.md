@@ -34,11 +34,19 @@ Routes to explore:
 
 ## Going live
 
-1. Create a Supabase project, apply `supabase/migrations/0001…0009` in order, deploy `supabase/functions/*`, and set the `app.edge_url` / `app.cron_secret` database settings (docs/11 §1–2).
-2. Copy `.env.example` → `.env.local` and fill in keys. The moment `NEXT_PUBLIC_SUPABASE_URL` + `GEMINI_API_KEY` exist, auth, persistence, realtime, and live LLM drafting activate — the provider router (Gemini → Groq) replaces the demo provider automatically.
-3. Set up GitHub Actions secrets for `crawler.yml` (nightly careers-diff + tech-detect) and `keepalive.yml` (Supabase keep-alive + encrypted backups).
-4. Seed the discovery corpus: `npx tsx scripts/seed-corpus.ts` (YC directory + Product Hunt + GitHub, ≥8K target).
-5. At M8: `npx tsx scripts/stripe-setup.ts` for the flat-plan catalog ($99/$249/$499 — no credits, ever).
+1. Create a Supabase project, apply `supabase/migrations/0001…0010` in order, deploy `supabase/functions/*` (`supabase secrets set CRON_SECRET=… GEMINI_API_KEY=… RESEND_API_KEY=…`), and set the `app.edge_url` / `app.cron_secret` database settings (docs/11 §1–2).
+2. In the Supabase dashboard enable the Google (and optionally LinkedIn) auth provider with your GCP OAuth client, site URL, and `…/auth/callback` redirect.
+3. Copy `.env.example` → `.env.local` (locally) / project env vars (Vercel) and fill in keys. What each key activates:
+   - `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY` — real OAuth login, session middleware, onboarding persistence, live workspace data on every screen, write-through mutations (claim/done/snooze/stage/send).
+   - `SUPABASE_SERVICE_ROLE_KEY` — ingest persistence (`/api/ingest/batch` → signals + fan-out), visitor sessions (`/api/px`), clipper persistence, live source health.
+   - `GEMINI_API_KEY` / `GROQ_API_KEY` — real LLM drafting/ICP/briefs; the router (Gemini → Groq) replaces the demo provider automatically, falling back to it only if all providers fail.
+   - `CRON_SECRET` — authorizes pg_cron→edge functions, GH Actions crawler, and `/api/cron/*`.
+   - `STRIPE_WEBHOOK_SECRET` — webhook signature verification goes live (plan mutations land at M8).
+4. Set up GitHub Actions secrets for `crawler.yml` (nightly careers-diff + tech-detect) and `keepalive.yml` (Supabase keep-alive + encrypted backups).
+5. Seed the discovery corpus: `npx tsx scripts/seed-corpus.ts` (YC directory + Product Hunt + GitHub, ≥8K target) — powers Discover search in live mode.
+6. At M8: `npx tsx scripts/stripe-setup.ts` for the flat-plan catalog ($99/$249/$499 — no credits, ever).
+
+With **zero env vars** the app runs in full demo mode (fixtures + deterministic AI) — every screen and flow works offline.
 
 ## Architecture (docs/03)
 

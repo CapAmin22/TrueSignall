@@ -7,7 +7,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Star, Swords, Plus } from "lucide-react";
-import { useDemoStore, companies, competitors as seedCompetitors, signals } from "@/lib/demo/store";
+import { useDemoStore } from "@/lib/demo/store";
 import { normalizeDomain } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Badge, Card, Input } from "@/components/ui/primitives";
@@ -15,7 +15,8 @@ import type { Competitor } from "@/lib/demo/types";
 
 export default function CompetitorsPage() {
   const store = useDemoStore();
-  const [competitors, setCompetitors] = useState<Competitor[]>(seedCompetitors);
+  const { companies, signals } = store;
+  const [competitors, setCompetitors] = useState<Competitor[]>(store.competitors);
   const [name, setName] = useState("");
   const [domain, setDomain] = useState("");
 
@@ -40,7 +41,8 @@ export default function CompetitorsPage() {
   // CI-02: competitor detected in a monitored account's stack
   const alerts = store.accounts
     .map((account) => {
-      const company = companies.find((c) => c.id === account.company_id)!;
+      const company = companies.find((c) => c.id === account.company_id);
+      if (!company) return null;
       const detected = company.tech_stack.filter((t) =>
         competitors.some((c) => c.name.toLowerCase() === t.toLowerCase()),
       );

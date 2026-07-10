@@ -18,7 +18,7 @@ import {
   type DragStartEvent,
 } from "@dnd-kit/core";
 import { Flame } from "lucide-react";
-import { useDemoStore, companies, signals } from "@/lib/demo/store";
+import { useDemoStore } from "@/lib/demo/store";
 import { cn, relativeTime } from "@/lib/utils";
 import { UrgencyRing } from "@/components/signal/UrgencyRing";
 import { Badge } from "@/components/ui/primitives";
@@ -33,10 +33,12 @@ const COLUMNS: { stage: Stage; label: string }[] = [
 ];
 
 function PipelineCard({ account, dragging = false }: { account: Account; dragging?: boolean }) {
-  const company = companies.find((c) => c.id === account.company_id)!;
+  const { companies, signals } = useDemoStore();
+  const company = companies.find((c) => c.id === account.company_id);
   const lastSignal = signals
     .filter((s) => s.company_id === account.company_id)
     .sort((a, b) => b.occurred_at.localeCompare(a.occurred_at))[0];
+  if (!company) return null;
 
   return (
     <div

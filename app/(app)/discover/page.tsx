@@ -6,9 +6,11 @@
 import { useMemo, useState, useTransition } from "react";
 import { Search, Compass, Plus, Check } from "lucide-react";
 import { copy } from "@/lib/copy";
-import { useDemoStore, companies, workspace } from "@/lib/demo/store";
-import { computeFit } from "@/lib/scoring/fit";
+import { useDemoStore } from "@/lib/demo/store";
+import type { Company } from "@/lib/demo/types";
+import { computeFit, type FitResult } from "@/lib/scoring/fit";
 import { nlSearchAction, type DiscoverFilters } from "@/app/actions/ai";
+import { searchCorpusAction } from "@/app/actions/discover";
 import { FitPill } from "@/components/signal/FitPill";
 import { Button } from "@/components/ui/button";
 import { Badge, Card, Input, Skeleton } from "@/components/ui/primitives";
@@ -16,14 +18,18 @@ import { EmptyState } from "@/components/shared/EmptyState";
 
 export default function DiscoverPage() {
   const store = useDemoStore();
+  const { companies, workspace } = store;
   const [query, setQuery] = useState("");
   const [filters, setFilters] = useState<DiscoverFilters | null>(null);
+  const [liveResults, setLiveResults] = useState<{ company: Company; fit: FitResult }[] | null>(null);
   const [searched, setSearched] = useState(false);
   const [pending, startTransition] = useTransition();
 
   const monitored = new Set(store.accounts.map((a) => a.company_id));
 
   const results = useMemo(() => {
+    // Live mode: ranked corpus rows from Supabase; demo: fixture corpus.
+    if (liveResults) return [...liveResults].sort((a, b) => b.fit.score - a.fit.score);
     const scored = companies.map((c) => ({ company: c, fit: computeFit(c, workspace.icp) }));
     const filtered = !filters
       ? scored
@@ -35,14 +41,19 @@ export default function DiscoverPage() {
           return true;
         });
     return filtered.sort((a, b) => b.fit.score - a.fit.score);
-  }, [filters]);
+  }, [filters, liveResults, companies, workspace.icp]);
 
   const search = () => {
     if (!query.trim()) return;
     setSearched(true);
     startTransition(async () => {
       try {
-        setFilters(await nlSearchAction(query));
+        const parsed = await nlSearchAction(query);
+        setFilters(parsed);
+        if (store.live) {
+          const rows = await searchCorpusAction(parsed);
+          setLiveResults(rows.map((c) => ({ company: c, fit: computeFit(c, workspace.icp) })));
+        }
       } catch {
         setFilters(null);
       }
@@ -134,7 +145,7 @@ export default function DiscoverPage() {
                           : "Monitoring"}
                       </Badge>
                     ) : (
-                      <Button size="sm" onClick={() => store.addAccount(company.id)}>
+                      <Button size="sm" onClick={() => store.addAccount(company.id, company)}>
                         <Plus size={12} />
                         Monitor
                       </Button>
@@ -151,7 +162,8 @@ export default function DiscoverPage() {
       <h2 className="mb-3 mt-8 text-sm font-semibold text-text">{copy.discover.suggestedTitle}</h2>
       <div className="grid gap-3 md:grid-cols-2">
         {store.suggestions.map((s) => {
-          const company = companies.find((c) => c.id === s.company_id)!;
+          const company = companies.find((c) => c.id === s.company_id);
+          if (!company) return null;
           return (
             <Card key={s.company_id} className="flex items-center gap-3">
               <div className="min-w-0 flex-1">

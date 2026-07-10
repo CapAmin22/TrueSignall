@@ -9,7 +9,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Radio, Inbox } from "lucide-react";
 import { copy } from "@/lib/copy";
 import { hoursSince, cn } from "@/lib/utils";
-import { useDemoStore, companies, signals, sources, members, workspace } from "@/lib/demo/store";
+import { useDemoStore, sources } from "@/lib/demo/store";
 import type { FeedFiltersState } from "@/lib/demo/store";
 import { SignalCard, type FeedItem } from "@/components/signal/SignalCard";
 import { StackedSignalCard } from "@/components/signal/StackedSignalCard";
@@ -25,6 +25,7 @@ const VIEWS = ["all", "unclaimed", "snoozed", "archived"] as const;
 
 export default function FeedPage() {
   const store = useDemoStore();
+  const { companies, signals, members, workspace } = store;
   const [filters, setFilters] = useState<FeedFiltersState>({
     types: [],
     stage: null,
@@ -36,11 +37,11 @@ export default function FeedPage() {
 
   const items: FeedItem[] = useMemo(() => {
     return store.deliveries
-      .map((delivery) => {
-        const signal = signals.find((s) => s.id === delivery.signal_id)!;
-        const account = store.accounts.find((a) => a.id === delivery.account_id)!;
-        const company = companies.find((c) => c.id === account.company_id)!;
-        return { delivery, signal, account, company };
+      .flatMap((delivery) => {
+        const signal = signals.find((s) => s.id === delivery.signal_id);
+        const account = store.accounts.find((a) => a.id === delivery.account_id);
+        const company = account && companies.find((c) => c.id === account.company_id);
+        return signal && account && company ? [{ delivery, signal, account, company }] : [];
       })
       .filter((it) => {
         if (filters.view === "all" && ["done", "snoozed"].includes(it.delivery.status)) return false;
@@ -55,7 +56,7 @@ export default function FeedPage() {
         return true;
       })
       .sort((a, b) => b.delivery.urgency - a.delivery.urgency);
-  }, [store.deliveries, store.accounts, filters]);
+  }, [store.deliveries, store.accounts, signals, companies, filters]);
 
   // group stacked deliveries (SA-02: card renders when group has ≥2 members)
   const grouped = useMemo(() => {

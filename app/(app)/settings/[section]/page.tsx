@@ -7,7 +7,7 @@
 import Link from "next/link";
 import { use, useState } from "react";
 import { Mail, Copy, Check, ExternalLink } from "lucide-react";
-import { useDemoStore, workspace, members, sources } from "@/lib/demo/store";
+import { useDemoStore, sources } from "@/lib/demo/store";
 import { cn } from "@/lib/utils";
 import { copy as productCopy } from "@/lib/copy";
 import { PLANS, meterStatus } from "@/lib/plans";
@@ -45,6 +45,7 @@ export default function SettingsPage({ params }: { params: Promise<{ section: st
   const { section: raw } = use(params);
   const section = (SECTIONS.includes(raw as Section) ? raw : "profile") as Section;
   const store = useDemoStore();
+  const { workspace, members } = store;
   const [modes, setModes] = useState<Record<string, string>>(DEFAULT_MODES);
   const [copied, setCopied] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
@@ -52,7 +53,7 @@ export default function SettingsPage({ params }: { params: Promise<{ section: st
   const plan = PLANS[workspace.plan === "trial" ? "trial" : workspace.plan];
   const meters = meterStatus(plan, store.usage);
 
-  const pixelSnippet = `<script async src="https://app.truesignall.com/px.js" data-ws="ws_demo_token"></script>`;
+  const pixelSnippet = `<script async src="https://app.truesignall.com/px.js" data-ws="${store.workspaceId ?? "ws_demo_token"}"></script>`;
 
   const copySnippet = () => {
     void navigator.clipboard.writeText(pixelSnippet);

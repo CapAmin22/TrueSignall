@@ -3,9 +3,10 @@
 import { useEffect, useState } from "react";
 import { Search, Bell, Moon, Sun } from "lucide-react";
 import { Avatar } from "@/components/ui/primitives";
-import { workspace } from "@/lib/demo/store";
+import { useDemoStore } from "@/lib/demo/store";
 
 export function Topbar() {
+  const { workspace } = useDemoStore();
   const [dark, setDark] = useState(false);
 
   useEffect(() => {

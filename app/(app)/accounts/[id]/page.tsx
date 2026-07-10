@@ -7,7 +7,7 @@
 import Link from "next/link";
 import { use, useMemo, useState } from "react";
 import { Zap, FileText, ArrowUpRight, ArrowDownLeft, Phone } from "lucide-react";
-import { useDemoStore, companies, signals, competitors } from "@/lib/demo/store";
+import { useDemoStore } from "@/lib/demo/store";
 import { cn, relativeTime } from "@/lib/utils";
 import { FitPill } from "@/components/signal/FitPill";
 import { UrgencyRing } from "@/components/signal/UrgencyRing";
@@ -33,6 +33,7 @@ const STAGES: Stage[] = [
 export default function AccountDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const store = useDemoStore();
+  const { companies, signals, competitors } = store;
   const [tab, setTab] = useState<(typeof TABS)[number]>("Overview");
   const [composerItems, setComposerItems] = useState<FeedItem[] | null>(null);
   const [note, setNote] = useState("");
@@ -48,7 +49,7 @@ export default function AccountDetailPage({ params }: { params: Promise<{ id: st
             .filter((s) => s.company_id === account.company_id)
             .sort((a, b) => b.occurred_at.localeCompare(a.occurred_at))
         : [],
-    [account],
+    [account, signals],
   );
   const accountContacts = store.contacts.filter((c) => c.account_id === id);
   const accountMessages = store.messages

@@ -58,10 +58,11 @@ function bucketFor(name: string, rpm: number): MinuteBucket {
 async function geminiComplete(system: string, user: string, model: string): Promise<string> {
   const key = process.env.GEMINI_API_KEY;
   const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
     {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      // key travels in a header, never the URL (query strings land in logs)
+      headers: { "Content-Type": "application/json", "x-goog-api-key": key ?? "" },
       body: JSON.stringify({
         systemInstruction: { parts: [{ text: system }] },
         contents: [{ role: "user", parts: [{ text: user }] }],

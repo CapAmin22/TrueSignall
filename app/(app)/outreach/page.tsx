@@ -6,7 +6,7 @@
  */
 import { useMemo } from "react";
 import { Lock } from "lucide-react";
-import { useDemoStore, companies } from "@/lib/demo/store";
+import { useDemoStore } from "@/lib/demo/store";
 import { cn, relativeTime } from "@/lib/utils";
 import { Card } from "@/components/ui/primitives";
 import { EmptyState } from "@/components/shared/EmptyState";
@@ -15,6 +15,7 @@ const INDUSTRY_COLD_BASELINE = 3.4;
 
 export default function OutreachPage() {
   const store = useDemoStore();
+  const { companies } = store;
 
   const stats = useMemo(() => {
     const sent = store.messages.filter((m) => m.direction === "outbound");

@@ -6,7 +6,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { Building2, Upload } from "lucide-react";
-import { useDemoStore, companies, members, signals } from "@/lib/demo/store";
+import { useDemoStore } from "@/lib/demo/store";
 import { relativeTime } from "@/lib/utils";
 import { FitPill } from "@/components/signal/FitPill";
 import { UrgencyRing } from "@/components/signal/UrgencyRing";
@@ -27,25 +27,27 @@ const STAGE_LABELS: Record<string, string> = {
 
 export default function AccountsPage() {
   const store = useDemoStore();
+  const { companies, signals, members } = store;
   const [search, setSearch] = useState("");
   const [stageFilter, setStageFilter] = useState("");
 
   const rows = useMemo(() => {
     return store.accounts
       .filter((a) => a.status !== "archived")
-      .map((account) => {
-        const company = companies.find((c) => c.id === account.company_id)!;
+      .flatMap((account) => {
+        const company = companies.find((c) => c.id === account.company_id);
+        if (!company) return [];
         const lastSignal = signals
           .filter((s) => s.company_id === account.company_id)
           .sort((a, b) => b.occurred_at.localeCompare(a.occurred_at))[0];
-        return { account, company, lastSignal };
+        return [{ account, company, lastSignal }];
       })
       .filter(({ company }) =>
         search ? company.name.toLowerCase().includes(search.toLowerCase()) || company.domain.includes(search.toLowerCase()) : true,
       )
       .filter(({ account }) => (stageFilter ? account.stage === stageFilter : true))
       .sort((a, b) => b.account.urgency_score - a.account.urgency_score);
-  }, [store.accounts, search, stageFilter]);
+  }, [store.accounts, companies, signals, search, stageFilter]);
 
   return (
     <div>

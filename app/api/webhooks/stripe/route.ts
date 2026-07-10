@@ -1,9 +1,10 @@
 /**
  * POST /api/webhooks/stripe — billing lifecycle (docs/07 §3, 08 §6).
- * Signature-verified; idempotent via event-id ledger; handles
- * checkout.session.completed, customer.subscription.updated|deleted,
- * invoice.payment_failed.
+ * Signature-verified (t/v1 HMAC scheme, 5-min tolerance); idempotent via
+ * event-id ledger; handles checkout.session.completed,
+ * customer.subscription.updated|deleted, invoice.payment_failed.
  */
+import { createHmac, timingSafeEqual } from "crypto";
 import { errorResponse, AppError } from "@/lib/errors";
 
 const HANDLED_EVENTS = new Set([
@@ -12,6 +13,24 @@ const HANDLED_EVENTS = new Set([
   "customer.subscription.deleted",
   "invoice.payment_failed",
 ]);
+
+const TOLERANCE_SECONDS = 300;
+
+/** Verify Stripe's `t=…,v1=…` signature header against the raw body. */
+function verifyStripeSignature(rawBody: string, header: string, secret: string): boolean {
+  const parts = new Map(
+    header.split(",").map((kv) => kv.split("=", 2) as [string, string]),
+  );
+  const t = parts.get("t");
+  const v1 = parts.get("v1");
+  if (!t || !v1) return false;
+  if (Math.abs(Date.now() / 1000 - Number(t)) > TOLERANCE_SECONDS) return false;
+
+  const expected = createHmac("sha256", secret).update(`${t}.${rawBody}`).digest("hex");
+  const a = Buffer.from(expected);
+  const b = Buffer.from(v1);
+  return a.length === b.length && timingSafeEqual(a, b);
+}
 
 /** In-memory idempotency ledger; stripe_events table in production (08 §6). */
 const processedEvents = new Set<string>();
@@ -25,13 +44,12 @@ export async function POST(request: Request) {
       new AppError("INTERNAL", "Stripe is not configured — set STRIPE_WEBHOOK_SECRET."),
     );
   }
-  if (!signature) {
-    return errorResponse(new AppError("FORBIDDEN", "Missing Stripe signature."));
+
+  const rawBody = await request.text();
+  if (!signature || !verifyStripeSignature(rawBody, signature, secret)) {
+    return errorResponse(new AppError("FORBIDDEN", "Invalid Stripe signature."));
   }
 
-  // Full verification uses stripe.webhooks.constructEvent with the raw body;
-  // the stripe SDK is added at M8 with the setup script (docs/08 §6).
-  const rawBody = await request.text();
   let event: { id?: string; type?: string };
   try {
     event = JSON.parse(rawBody);
@@ -51,5 +69,6 @@ export async function POST(request: Request) {
   // customer.subscription.updated → map price→plan
   // customer.subscription.deleted → plan 'expired' at period end
   // invoice.payment_failed → flag + email
+  // Plan mutations land with the Stripe setup script at M8 (docs/08 §6).
   return Response.json({ received: true });
 }

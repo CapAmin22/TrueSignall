@@ -7,7 +7,7 @@
 import Link from "next/link";
 import { use, useCallback, useEffect, useMemo, useState, useTransition } from "react";
 import { ArrowLeft, RefreshCw, Printer } from "lucide-react";
-import { useDemoStore, companies, signals, competitors, workspace } from "@/lib/demo/store";
+import { useDemoStore } from "@/lib/demo/store";
 import { relativeTime } from "@/lib/utils";
 import { copy } from "@/lib/copy";
 import { generateBriefAction, type Brief } from "@/app/actions/ai";
@@ -37,6 +37,7 @@ function BriefSection({
 export default function BriefPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const store = useDemoStore();
+  const { companies, signals, competitors, workspace } = store;
   const [brief, setBrief] = useState<Brief | null>(null);
   const [generatedAt, setGeneratedAt] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -51,7 +52,7 @@ export default function BriefPage({ params }: { params: Promise<{ id: string }> 
             .filter((s) => s.company_id === account.company_id)
             .sort((a, b) => b.occurred_at.localeCompare(a.occurred_at))
         : [],
-    [account],
+    [account, signals],
   );
   const accountContacts = store.contacts.filter((c) => c.account_id === id);
   const accountMessages = store.messages.filter((m) => m.account_id === id);
@@ -78,7 +79,7 @@ export default function BriefPage({ params }: { params: Promise<{ id: string }> 
       setBrief(result);
       setGeneratedAt(new Date().toISOString());
     });
-  }, [account, company, accountSignals, accountContacts, accountMessages]);
+  }, [account, company, accountSignals, accountContacts, accountMessages, competitors, workspace]);
 
   useEffect(() => {
     generate();
