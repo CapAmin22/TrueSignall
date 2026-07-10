@@ -11,12 +11,32 @@ export const copy = {
 
   nav: {
     feed: "Signals",
+    moments: "Moments",
+    network: "Network",
     discover: "Discover",
     accounts: "Accounts",
     pipeline: "Pipeline",
     outreach: "Outreach",
     competitors: "Competitors",
     settings: "Settings",
+  },
+
+  moments: {
+    title: "Moments",
+    sub: "Personal reasons to reach out — congratulate first, sell never.",
+    empty: "No new moments — import more of your network to catch more of them.",
+    writeNote: "Write a note",
+    markSent: "Mark sent",
+    dismiss: "Dismiss",
+  },
+
+  network: {
+    title: "Network",
+    sub: "Your relationships, kept warm on purpose.",
+    import: "Import contacts",
+    reconnectTitle: "Due a touch",
+    pathsTitle: "Warm paths into your hottest accounts",
+    empty: "Import your contacts to start relationship monitoring.",
   },
 
   feed: {

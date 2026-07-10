@@ -8,6 +8,7 @@ import Link from "next/link";
 import { use, useMemo, useState } from "react";
 import { Zap, FileText, ArrowUpRight, ArrowDownLeft, Phone } from "lucide-react";
 import { useDemoStore } from "@/lib/demo/store";
+import { findIntroPaths } from "@/lib/relationships/intro-paths";
 import { cn, relativeTime } from "@/lib/utils";
 import { FitPill } from "@/components/signal/FitPill";
 import { UrgencyRing } from "@/components/signal/UrgencyRing";
@@ -160,6 +161,26 @@ export default function AccountDetailPage({ params }: { params: Promise<{ id: st
               </p>
             ))}
             {accountContacts.length === 0 && <p className="text-xs text-muted">No contacts yet.</p>}
+          </Card>
+          <Card className="md:col-span-2">
+            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">
+              Warm intros from your network
+            </h3>
+            {findIntroPaths(company.domain, store.connections).slice(0, 3).map((p) => (
+              <p key={p.connection.id} className="mb-1.5 text-sm text-text">
+                <span className="font-medium">{p.connection.full_name}</span>{" "}
+                <span className="text-muted">— {p.reason}</span>
+                <Badge tone={p.strength >= 60 ? "signal" : "muted"} className="ml-1.5">
+                  path {p.strength}
+                </Badge>
+              </p>
+            ))}
+            {findIntroPaths(company.domain, store.connections).length === 0 && (
+              <p className="text-xs text-muted">
+                No direct paths yet — import more of your network to find warm doors into this
+                account.
+              </p>
+            )}
           </Card>
         </div>
       )}

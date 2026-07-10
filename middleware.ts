@@ -6,7 +6,7 @@ import { createServerClient } from "@supabase/ssr";
  * Demo mode (no Supabase env): pass-through — every screen stays reachable.
  */
 const PROTECTED =
-  /^\/(feed|discover|accounts|pipeline|outreach|competitors|settings|onboarding)/;
+  /^\/(feed|moments|network|discover|accounts|pipeline|outreach|competitors|settings|onboarding)/;
 
 export async function middleware(request: NextRequest) {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;

@@ -89,6 +89,18 @@ Return JSON, every string ≤100 words: {"why_this_conversation":"the triggering
 "history":"1 sentence on prior touches or 'First contact.'"}
 Facts only from context; no speculation about company strategy.`;
 
+/** P-8 · Personal note (relationship layer — congratulate, never pitch) */
+export const P8_PERSONAL_NOTE = `TASK: Write a short personal note FROM the founder TO a personal connection about a life/career moment. This is relationship-building, NOT sales.
+FOUNDER: name {{founder_name}} | CONNECTION: {{name}}, {{title_or_blank}} | relationship: {{band}} ({{context}})
+MOMENT: type={{type}} | "{{title}}" | detail: {{detail}} | occurred {{relative_time}}
+HARD RULES:
+1. ZERO product mention, ZERO business ask, ZERO "let's catch up to discuss". The only goal is warmth.
+2. ≤60 words. Sounds like a text from a friend who happens to be professional — not a card, not LinkedIn-speak.
+3. Reference the specific moment by name. One genuine sentence about it, one human touch (memory, wish, question about them).
+4. NEVER use: "huge congrats","so proud of you","well deserved!!","rockstar","crushing it","amazing news","thrilled".
+5. A light, natural close is fine ("say hi to the family", "enjoy every minute") — no meeting requests.
+Return JSON: {"note":"the message, plain text, no subject","channel_hint":"text"|"email"|"linkedin_dm" (pick what fits the moment's intimacy)}`;
+
 /** Simple {{key}} interpolation for prompt templates. */
 export function fillTemplate(template: string, vars: Record<string, string>): string {
   return template.replace(/\{\{([^}]+)\}\}/g, (_, key: string) => {

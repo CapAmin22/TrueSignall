@@ -14,6 +14,7 @@ import type {
 } from "@/lib/demo/types";
 import type { ICP } from "@/lib/scoring/fit";
 import type { SignalType, SignalPayload } from "@/lib/signals/taxonomy";
+import type { Connection, PersonalSignal } from "@/lib/relationships/types";
 
 /**
  * Live workspace bundle — the Supabase-backed equivalent of the demo
@@ -32,6 +33,8 @@ export interface LiveBundle {
   contacts: Contact[];
   messages: Message[];
   competitors: Competitor[];
+  connections: Connection[];
+  personalSignals: PersonalSignal[];
 }
 
 const EMPTY_ICP: ICP = { industries: [], company_sizes: [], stages: [], geos: [] };
@@ -106,7 +109,7 @@ function mapWorkspace(row: Row, founderName: string): Workspace {
 
 async function fetchBundle(db: SupabaseClient, userId: string, ws: Row): Promise<LiveBundle> {
   const wsId = ws.id as string;
-  const [accountsQ, deliveriesQ, contactsQ, messagesQ, competitorsQ, membersQ, profileQ] =
+  const [accountsQ, deliveriesQ, contactsQ, messagesQ, competitorsQ, membersQ, profileQ, connectionsQ, momentsQ] =
     await Promise.all([
       db.from("accounts").select("*, companies(*)").eq("workspace_id", wsId).limit(500),
       db
@@ -125,6 +128,13 @@ async function fetchBundle(db: SupabaseClient, userId: string, ws: Row): Promise
       db.from("competitors").select("*").eq("workspace_id", wsId),
       db.from("workspace_members").select("user_id, role").eq("workspace_id", wsId),
       db.from("profiles").select("full_name").eq("id", userId).maybeSingle(),
+      db.from("connections").select("*").eq("workspace_id", wsId).limit(2000),
+      db
+        .from("personal_signals")
+        .select("*")
+        .eq("workspace_id", wsId)
+        .order("occurred_at", { ascending: false })
+        .limit(300),
     ]);
 
   const companies = new Map<string, Company>();
@@ -202,6 +212,35 @@ async function fetchBundle(db: SupabaseClient, userId: string, ws: Row): Promise
       headcount: c.enrichment?.headcount ?? "—",
       g2_rating: c.enrichment?.g2_rating ?? 0,
       latest_news: c.enrichment?.latest_news ?? "",
+    })),
+    connections: (connectionsQ.data ?? []).map((c: Row) => ({
+      id: c.id,
+      full_name: c.full_name,
+      emails: c.emails ?? [],
+      phones: c.phones ?? [],
+      company_domain: c.company_domain,
+      company_name: c.company_name,
+      title: c.title,
+      linkedin_url: c.linkedin_url,
+      source: c.source,
+      closeness: c.closeness ?? 50,
+      last_interaction_at: c.last_interaction_at,
+      interaction_count: c.interaction_count ?? 0,
+      birthday: c.birthday,
+      tags: c.tags ?? [],
+      notes: c.notes ?? "",
+      created_at: c.created_at,
+    })),
+    personalSignals: (momentsQ.data ?? []).map((m: Row) => ({
+      id: m.id,
+      connection_id: m.connection_id,
+      type: m.type,
+      title: m.title,
+      detail: m.detail ?? "",
+      source: m.source,
+      source_url: m.source_url,
+      occurred_at: m.occurred_at,
+      status: m.status,
     })),
   };
 }

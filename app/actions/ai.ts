@@ -12,6 +12,7 @@ import {
   P5_OUTREACH_DRAFT,
   P5B_SECTION_REGEN,
   P7_PRECALL_BRIEF,
+  P8_PERSONAL_NOTE,
   fillTemplate,
 } from "@/lib/ai/prompts";
 import {
@@ -211,6 +212,46 @@ export interface BriefContext {
   oneLiner: string;
   pains: string[];
   competitors: string;
+}
+
+const personalNoteSchema = z.object({
+  note: z.string().min(10).max(600),
+  channel_hint: z.enum(["text", "email", "linkedin_dm"]),
+});
+
+export type PersonalNote = z.infer<typeof personalNoteSchema>;
+
+const personalNoteCtxSchema = z.object({
+  founderName: z.string(),
+  connectionName: z.string(),
+  connectionTitle: z.string().default(""),
+  band: z.string(),
+  context: z.string().default(""),
+  momentType: z.string(),
+  momentTitle: z.string(),
+  momentDetail: z.string().default(""),
+  occurred: z.string(),
+});
+
+export type PersonalNoteContext = z.infer<typeof personalNoteCtxSchema>;
+
+/** P-8 — congratulate, never pitch. The relationship layer's note generator. */
+export async function generatePersonalNoteAction(
+  rawCtx: PersonalNoteContext,
+): Promise<PersonalNote> {
+  const ctx = personalNoteCtxSchema.parse(rawCtx);
+  const prompt = fillTemplate(P8_PERSONAL_NOTE, {
+    founder_name: ctx.founderName,
+    name: ctx.connectionName,
+    title_or_blank: ctx.connectionTitle,
+    band: ctx.band,
+    context: ctx.context,
+    type: ctx.momentType,
+    title: ctx.momentTitle,
+    detail: ctx.momentDetail,
+    relative_time: ctx.occurred,
+  });
+  return callLLMJson({ task: "personal_note", prompt, chain: "quality", schema: personalNoteSchema });
 }
 
 export async function generateBriefAction(ctx: BriefContext): Promise<Brief> {

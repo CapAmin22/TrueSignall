@@ -4,6 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Radio,
+  HeartHandshake,
+  Users,
   Compass,
   Building2,
   KanbanSquare,
@@ -17,6 +19,8 @@ import { copy } from "@/lib/copy";
 
 const NAV = [
   { href: "/feed", label: copy.nav.feed, icon: Radio },
+  { href: "/moments", label: copy.nav.moments, icon: HeartHandshake },
+  { href: "/network", label: copy.nav.network, icon: Users },
   { href: "/discover", label: copy.nav.discover, icon: Compass },
   { href: "/accounts", label: copy.nav.accounts, icon: Building2 },
   { href: "/pipeline", label: copy.nav.pipeline, icon: KanbanSquare },

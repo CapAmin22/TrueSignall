@@ -165,6 +165,48 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* The USP — relationship layer */}
+      <section className="border-t border-border">
+        <div className="mx-auto max-w-5xl px-6 py-16">
+          <p className="text-center text-xs font-semibold uppercase tracking-wide text-primary">
+            Why founders keep it
+          </p>
+          <h2 className="mt-2 text-center text-2xl font-semibold">
+            Network is built first. Everything is sold on trust.
+          </h2>
+          <p className="mx-auto mt-3 max-w-2xl text-center text-sm leading-relaxed text-muted">
+            Your real sales asset is the network you already have — colleagues, batchmates,
+            investors, conference friends. TrueSignall imports it, keeps it deliberately warm,
+            and turns it into doors that open before the pitch.
+          </p>
+          <div className="mt-8 grid gap-6 md:grid-cols-3">
+            {[
+              {
+                t: "Moments, not just signals",
+                d: "Birthdays, new babies, new homes, promotions — personal reasons to reach out with zero pitch. The AI note generator is hard-ruled to never sell.",
+              },
+              {
+                t: "Warmth that doesn't fade silently",
+                d: "Every relationship is scored hot → cold on a 45-day decay. The reconnect queue tells you who's due a touch before the trust expires.",
+              },
+              {
+                t: "Warm paths into hot accounts",
+                d: "The moment an account lights up, the pathfinder shows who in your own network already works there — ranked by warmth × seniority.",
+              },
+            ].map((s) => (
+              <div key={s.t} className="rounded-[10px] border border-border bg-surface p-5">
+                <h3 className="text-sm font-semibold">{s.t}</h3>
+                <p className="mt-1 text-sm leading-relaxed text-muted">{s.d}</p>
+              </div>
+            ))}
+          </div>
+          <p className="mt-6 text-center text-xs text-muted">
+            Your contacts stay private to your workspace — never shared, never used to enrich
+            anyone else&apos;s data.
+          </p>
+        </div>
+      </section>
+
       <section id="pricing" className="border-t border-border bg-surface">
         <div className="mx-auto max-w-5xl px-6 py-16">
           <h2 className="text-center text-2xl font-semibold">Flat pricing. {copy.billing.noCredits}</h2>

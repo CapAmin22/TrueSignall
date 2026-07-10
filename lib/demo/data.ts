@@ -18,6 +18,7 @@ import type {
   Suggestion,
   Workspace,
 } from "./types";
+import type { Connection, PersonalSignal } from "@/lib/relationships/types";
 
 const NOW = Date.now();
 const hoursAgo = (h: number) => new Date(NOW - h * 3_600_000).toISOString();
@@ -398,3 +399,43 @@ export const suggestions: Suggestion[] = [
 export function companyById(id: string): Company | undefined {
   return companies.find((c) => c.id === id);
 }
+
+/* ────────────────────────────────────────────────────────────────────────────
+ * Relationship layer fixtures — the founder's personal network (USP).
+ * Workspace-scoped personal data; never global (invariant I-1).
+ * ──────────────────────────────────────────────────────────────────────── */
+
+const birthdayInDays = (d: number) => {
+  const t = new Date(NOW + d * 86_400_000);
+  return `1990-${String(t.getMonth() + 1).padStart(2, "0")}-${String(t.getDate()).padStart(2, "0")}`;
+};
+
+export const connections: Connection[] = [
+  // Direct paths into monitored/hot accounts
+  { id: "n-priya", full_name: "Priya Sharma", emails: ["priya@acme.io"], phones: ["+1 415 555 0132"], company_domain: "acme.io", company_name: "Acme Corp", title: "VP Revenue Operations", linkedin_url: "https://linkedin.com/in/priyasharma", source: "linkedin_export", closeness: 85, last_interaction_at: daysAgo(9), interaction_count: 24, birthday: birthdayInDays(3), tags: ["decision_maker", "ex_colleague"], notes: "Worked together at Salesloft 2019-21. Two kids, runs marathons.", created_at: daysAgo(400) },
+  { id: "n-marcus", full_name: "Marcus Webb", emails: ["marcus@orbitpayroll.com"], phones: [], company_domain: "orbitpayroll.com", company_name: "Orbit Payroll", title: "VP RevOps", linkedin_url: "https://linkedin.com/in/marcuswebb", source: "gmail_import", closeness: 90, last_interaction_at: daysAgo(35), interaction_count: 41, birthday: null, tags: ["decision_maker", "champion"], notes: "Champion at Solstice before moving. Intro'd us to two customers.", created_at: daysAgo(700) },
+  { id: "n-elena", full_name: "Elena Vasquez", emails: ["elena.v@vantagerev.com"], phones: ["+1 917 555 0187"], company_domain: "vantagerev.com", company_name: "Vantage Revenue", title: "Co-founder & CRO", linkedin_url: "https://linkedin.com/in/elenavasquez", source: "phone_import", closeness: 75, last_interaction_at: daysAgo(60), interaction_count: 15, birthday: birthdayInDays(11), tags: ["decision_maker", "friend"], notes: "College roommate's sister. Met at SaaStr 2024.", created_at: daysAgo(500) },
+  { id: "n-david", full_name: "David Okonkwo", emails: ["d.okonkwo@juniperdata.co"], phones: [], company_domain: "juniperdata.co", company_name: "Juniper Data", title: "Head of Growth", linkedin_url: "https://linkedin.com/in/dokonkwo", source: "linkedin_export", closeness: 60, last_interaction_at: daysAgo(80), interaction_count: 8, birthday: null, tags: ["decision_maker"], notes: "Met at RevOps meetup SF. Interested in signal tooling.", created_at: daysAgo(300) },
+  { id: "n-sofia", full_name: "Sofia Lindqvist", emails: ["sofia@lumenly.com"], phones: [], company_domain: "lumenly.com", company_name: "Lumenly", title: "Growth Engineer", linkedin_url: "https://linkedin.com/in/sofialindqvist", source: "gmail_import", closeness: 55, last_interaction_at: daysAgo(20), interaction_count: 12, birthday: null, tags: [], notes: "Former teammate's partner. Very plugged into PLG community.", created_at: daysAgo(250) },
+  // Warm network beyond current accounts
+  { id: "n-james", full_name: "James Park", emails: ["jamespark@gmail.com"], phones: ["+1 650 555 0119"], company_domain: "driftline.io", company_name: "Driftline", title: "Co-founder & CEO", linkedin_url: "https://linkedin.com/in/jamespark", source: "phone_import", closeness: 95, last_interaction_at: daysAgo(14), interaction_count: 60, birthday: birthdayInDays(0), tags: ["decision_maker", "friend", "investor"], notes: "Best man at his wedding. Angel in our pre-seed.", created_at: daysAgo(1500) },
+  { id: "n-aisha", full_name: "Aisha Rahman", emails: ["aisha@sequoiascout.com"], phones: [], company_domain: null, company_name: "Independent", title: "Angel Investor", linkedin_url: "https://linkedin.com/in/aisharahman", source: "gmail_import", closeness: 70, last_interaction_at: daysAgo(50), interaction_count: 18, birthday: null, tags: ["investor"], notes: "Scout; intro'd three founders last year. Loves fintech infra.", created_at: daysAgo(600) },
+  { id: "n-tom", full_name: "Tom Beckett", emails: ["tom.beckett@keelhaul.dev"], phones: [], company_domain: "keelhaul.dev", company_name: "Keelhaul", title: "CTO & Co-founder", linkedin_url: "https://linkedin.com/in/tombeckett", source: "linkedin_export", closeness: 65, last_interaction_at: daysAgo(95), interaction_count: 9, birthday: null, tags: ["decision_maker", "ex_colleague"], notes: "Ex-Stripe. We shared a desk pod for a year.", created_at: daysAgo(800) },
+  { id: "n-nina", full_name: "Nina Castellanos", emails: ["nina.c@riverbedhealth.com"], phones: ["+1 312 555 0164"], company_domain: "riverbedhealth.com", company_name: "Riverbed Health", title: "Chief Operating Officer", linkedin_url: "https://linkedin.com/in/ninacastellanos", source: "csv_import", closeness: 50, last_interaction_at: daysAgo(120), interaction_count: 5, birthday: birthdayInDays(7), tags: ["decision_maker"], notes: "Met at HLTH conference. Asked for a demo next quarter.", created_at: daysAgo(200) },
+  { id: "n-raj", full_name: "Raj Patel", emails: ["raj@halyard.app"], phones: [], company_domain: "halyard.app", company_name: "Halyard", title: "VP Finance", linkedin_url: null, source: "gmail_import", closeness: 45, last_interaction_at: daysAgo(150), interaction_count: 6, birthday: null, tags: [], notes: "Former customer contact at his last company.", created_at: daysAgo(450) },
+  { id: "n-lucy", full_name: "Lucy Zhang", emails: ["lucyz@fathommetrics.com"], phones: [], company_domain: "fathommetrics.com", company_name: "Fathom Metrics", title: "Founding AE", linkedin_url: "https://linkedin.com/in/lucyzhang", source: "linkedin_export", closeness: 58, last_interaction_at: daysAgo(28), interaction_count: 11, birthday: null, tags: [], notes: "Very active in RevGenius. Great intro energy.", created_at: daysAgo(350) },
+  { id: "n-oliver", full_name: "Oliver Grant", emails: ["oliver.grant@westgatehq.com"], phones: [], company_domain: "westgatehq.com", company_name: "Westgate", title: "Director of IT", linkedin_url: "https://linkedin.com/in/olivergrant", source: "csv_import", closeness: 40, last_interaction_at: null, interaction_count: 0, birthday: null, tags: ["decision_maker"], notes: "LinkedIn accepted, never talked. Warm this one up.", created_at: daysAgo(90) },
+  { id: "n-fatima", full_name: "Fatima Al-Rashid", emails: ["fatima@pinewood.ai"], phones: ["+44 20 5550 0142"], company_domain: "pinewood.ai", company_name: "Pinewood AI", title: "CEO & Co-founder", linkedin_url: "https://linkedin.com/in/fatimaalrashid", source: "phone_import", closeness: 80, last_interaction_at: daysAgo(42), interaction_count: 22, birthday: null, tags: ["decision_maker", "friend"], notes: "YC batchmate. Text-message relationship.", created_at: daysAgo(900) },
+  { id: "n-gabe", full_name: "Gabriel Moreau", emails: ["gabe.moreau@gmail.com"], phones: [], company_domain: null, company_name: "Between roles", title: "Fractional CRO", linkedin_url: "https://linkedin.com/in/gabrielmoreau", source: "gmail_import", closeness: 62, last_interaction_at: daysAgo(70), interaction_count: 14, birthday: null, tags: ["ex_colleague"], notes: "Knows every sales leader in Paris. Send the occasional meme.", created_at: daysAgo(1100) },
+];
+
+export const personalSignals: PersonalSignal[] = [
+  { id: "ps-james-baby", connection_id: "n-james", type: "new_baby", title: "James and Mia welcomed a baby girl", detail: "Announced on LinkedIn — second child, named Harper.", source: "linkedin_clip", source_url: "https://linkedin.com/posts/jamespark", occurred_at: daysAgo(2), status: "new" },
+  { id: "ps-priya-award", connection_id: "n-priya", type: "award", title: "Priya named in Pavilion's 50 RevOps Leaders to Watch", detail: "Annual list, announced this week.", source: "news", source_url: "https://example.com/pavilion-50", occurred_at: daysAgo(4), status: "new" },
+  { id: "ps-marcus-job", connection_id: "n-marcus", type: "job_change", title: "Marcus started as VP RevOps at Orbit Payroll", detail: "Moved from Solstice CRM after 3 years — your former champion.", source: "linkedin_clip", source_url: "https://linkedin.com/posts/marcuswebb", occurred_at: daysAgo(6), status: "new" },
+  { id: "ps-fatima-home", connection_id: "n-fatima", type: "new_home", title: "Fatima bought her first home in Austin", detail: "Posted moving photos — relocated from SF.", source: "linkedin_clip", source_url: null, occurred_at: daysAgo(8), status: "new" },
+  { id: "ps-elena-speaking", connection_id: "n-elena", type: "speaking", title: "Elena is speaking at SaaStr Annual", detail: "Session: Quota planning that survives contact with reality.", source: "news", source_url: "https://example.com/saastr-agenda", occurred_at: daysAgo(5), status: "new" },
+  { id: "ps-tom-published", connection_id: "n-tom", type: "published", title: "Tom published 'CI security the hard way'", detail: "Long-form engineering post; front page of HN for a day.", source: "news", source_url: "https://keelhaul.dev/blog/ci-security", occurred_at: daysAgo(12), status: "new" },
+  { id: "ps-lucy-promo", connection_id: "n-lucy", type: "promotion", title: "Lucy promoted to Head of Sales", detail: "First sales hire to sales leader in 18 months.", source: "linkedin_clip", source_url: null, occurred_at: daysAgo(15), status: "new" },
+  { id: "ps-gabe-milestone", connection_id: "n-gabe", type: "company_milestone", title: "Gabriel's client hit EUR 1M ARR", detail: "He ran the GTM as fractional CRO — celebrated publicly.", source: "linkedin_clip", source_url: null, occurred_at: daysAgo(20), status: "new" },
+];

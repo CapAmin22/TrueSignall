@@ -156,6 +156,29 @@ function demoClipRelevance(): string {
   return JSON.stringify({ relevance: "high", matched_pains: ["missed buying signals on target accounts"] });
 }
 
+function demoPersonalNote(prompt: string): string {
+  const name = extract(prompt, /CONNECTION:\s*([^,]+),/).split(" ")[0] || "friend";
+  const type = extract(prompt, /type=(\w+)/);
+  const title = extract(prompt, /\|\s*"([^"]+)"/);
+  const notes: Record<string, string> = {
+    birthday: `Happy birthday, ${name}! Hope the day is full of the good stuff — cake included. Enjoy every minute.`,
+    new_baby: `${name} — just saw the news about the little one. Wishing your family all the sleep you can get and every bit of the joy. Say hi to everyone at home.`,
+    new_home: `${name}, saw you got the keys to the new place — that's a big milestone. Hope the first week feels like home already.`,
+    job_change: `${name} — saw you're starting the new role. They're lucky to have you; hope week one treats you well.`,
+    promotion: `${name}, saw the news about the step up — earned the hard way, from what I remember working with you. Enjoy it.`,
+    wedding: `${name} — congratulations to you both! Wishing you a wonderful start to the next chapter.`,
+    award: `${name}, saw the recognition — good to see the work getting noticed. Hope you took a minute to enjoy it.`,
+    speaking: `${name} — caught that you're speaking at the event. Great topic choice; hope the talk lands the way you want it to.`,
+    published: `${name}, read the piece you put out — the point about doing it the hard way stuck with me. Good writing.`,
+    work_anniversary: `${name} — saw the work anniversary come up. Time flies; hope the ride is still fun.`,
+    company_milestone: `${name}, saw the milestone your team hit — that kind of progress doesn't happen by accident. Nicely done.`,
+    education: `${name} — saw you finished the program. Finding the hours for that alongside everything else is no small thing.`,
+  };
+  const note = notes[type] ?? `${name} — saw the news${title ? ` about ${title.toLowerCase()}` : ""}. Genuinely happy for you. Enjoy it.`;
+  const channel = ["birthday", "new_baby", "new_home", "wedding"].includes(type) ? "text" : "linkedin_dm";
+  return JSON.stringify({ note, channel_hint: channel });
+}
+
 /** Returns null for unknown tasks so the router can throw AIBusyError. */
 export function demoComplete(task: string, prompt: string): string | null {
   switch (task) {
@@ -174,6 +197,8 @@ export function demoComplete(task: string, prompt: string): string | null {
       return demoVoiceProfile();
     case "clip_relevance":
       return demoClipRelevance();
+    case "personal_note":
+      return demoPersonalNote(prompt);
     case "signal_extract":
       return "[]";
     default:

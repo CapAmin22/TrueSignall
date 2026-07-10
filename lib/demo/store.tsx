@@ -19,8 +19,11 @@ import {
   suggestions as seedSuggestions,
   workspace as seedWorkspace,
   members as seedMembers,
+  connections as seedConnections,
+  personalSignals as seedPersonalSignals,
   companyById,
 } from "./data";
+import type { Connection, PersonalSignal, MomentStatus } from "@/lib/relationships/types";
 import type {
   Account,
   Company,
@@ -61,6 +64,8 @@ interface DemoStore {
   contacts: Contact[];
   messages: Message[];
   suggestions: Suggestion[];
+  connections: Connection[];
+  moments: PersonalSignal[];
   usage: UsageMeters;
   draftsUsed: number;
   claim: (deliveryId: string) => void;
@@ -73,6 +78,11 @@ interface DemoStore {
   recordSend: (accountId: string, contactId: string, subject: string, isSignalTriggered: boolean) => void;
   incrementDrafts: () => boolean;
   tagContact: (contactId: string, tag: string) => void;
+  /** Import connections (deduped); returns how many were actually added. */
+  addConnections: (rows: Connection[]) => number;
+  /** Record a personal touch — bumps recency/count so warmth recovers. */
+  logTouch: (connectionId: string) => void;
+  setMomentStatus: (moment: PersonalSignal, status: MomentStatus) => void;
 }
 
 const DemoContext = createContext<DemoStore | null>(null);
@@ -97,6 +107,12 @@ export function DemoProvider({
   const [contacts, setContacts] = useState<Contact[]>(initialData?.contacts ?? seedContacts);
   const [messages, setMessages] = useState<Message[]>(initialData?.messages ?? seedMessages);
   const [suggestions, setSuggestions] = useState<Suggestion[]>(live ? [] : seedSuggestions);
+  const [connections, setConnections] = useState<Connection[]>(
+    initialData?.connections ?? seedConnections,
+  );
+  const [moments, setMoments] = useState<PersonalSignal[]>(
+    initialData?.personalSignals ?? seedPersonalSignals,
+  );
   const [draftsUsed, setDraftsUsed] = useState(live ? 0 : 38);
 
   // Write-through: optimistic local state first, best-effort Supabase second.
@@ -278,6 +294,79 @@ export function DemoProvider({
     sync((db) => db.from("contacts").update({ tags }).eq("id", contactId));
   }, [contacts, sync]);
 
+  const addConnections = useCallback((rows: Connection[]): number => {
+    const existingKeys = new Set(
+      connections.flatMap((c) => [
+        ...c.emails.map((e) => e.toLowerCase()),
+        `${c.full_name.toLowerCase()}|${c.company_domain ?? ""}`,
+      ]),
+    );
+    const fresh = rows.filter((r) => {
+      const keys = [
+        ...r.emails.map((e) => e.toLowerCase()),
+        `${r.full_name.toLowerCase()}|${r.company_domain ?? ""}`,
+      ];
+      return !keys.some((k) => existingKeys.has(k));
+    });
+    if (!fresh.length) return 0;
+    setConnections((cs) => [...cs, ...fresh]);
+    if (workspaceId && userId) {
+      sync((db) =>
+        db.from("connections").insert(
+          fresh.map((r) => ({
+            id: r.id,
+            workspace_id: workspaceId,
+            owner_id: userId,
+            full_name: r.full_name,
+            emails: r.emails,
+            phones: r.phones,
+            company_domain: r.company_domain,
+            company_name: r.company_name,
+            title: r.title,
+            linkedin_url: r.linkedin_url,
+            source: r.source,
+            closeness: r.closeness,
+            last_interaction_at: r.last_interaction_at,
+            interaction_count: r.interaction_count,
+            birthday: r.birthday,
+            tags: r.tags,
+            notes: r.notes,
+          })),
+        ),
+      );
+    }
+    return fresh.length;
+  }, [connections, sync, workspaceId, userId]);
+
+  const logTouch = useCallback((connectionId: string) => {
+    const at = new Date().toISOString();
+    setConnections((cs) =>
+      cs.map((c) =>
+        c.id === connectionId
+          ? { ...c, last_interaction_at: at, interaction_count: c.interaction_count + 1 }
+          : c,
+      ),
+    );
+    const current = connections.find((c) => c.id === connectionId);
+    sync((db) =>
+      db
+        .from("connections")
+        .update({ last_interaction_at: at, interaction_count: (current?.interaction_count ?? 0) + 1 })
+        .eq("id", connectionId),
+    );
+  }, [connections, sync]);
+
+  // Upsert: derived moments (e.g. birthdays synthesized from contact data)
+  // may not exist in the list yet — record them with their new status.
+  const setMomentStatus = useCallback((moment: PersonalSignal, status: MomentStatus) => {
+    setMoments((ms) =>
+      ms.some((m) => m.id === moment.id)
+        ? ms.map((m) => (m.id === moment.id ? { ...m, status } : m))
+        : [...ms, { ...moment, status }],
+    );
+    sync((db) => db.from("personal_signals").update({ status }).eq("id", moment.id));
+  }, [sync]);
+
   const usage: UsageMeters = useMemo(
     () => ({
       accounts: accounts.filter((a) => a.status !== "archived").length,
@@ -303,6 +392,8 @@ export function DemoProvider({
       contacts,
       messages,
       suggestions,
+      connections,
+      moments,
       usage,
       draftsUsed,
       claim,
@@ -315,8 +406,11 @@ export function DemoProvider({
       recordSend,
       incrementDrafts,
       tagContact,
+      addConnections,
+      logTouch,
+      setMomentStatus,
     }),
-    [live, userId, workspaceId, ws, members, companies, signals, competitors, accounts, deliveries, contacts, messages, suggestions, usage, draftsUsed, claim, unclaim, markDone, snooze, setStage, addAccount, dismissSuggestion, recordSend, incrementDrafts, tagContact],
+    [live, userId, workspaceId, ws, members, companies, signals, competitors, accounts, deliveries, contacts, messages, suggestions, connections, moments, usage, draftsUsed, claim, unclaim, markDone, snooze, setStage, addAccount, dismissSuggestion, recordSend, incrementDrafts, tagContact, addConnections, logTouch, setMomentStatus],
   );
 
   return <DemoContext.Provider value={value}>{children}</DemoContext.Provider>;
