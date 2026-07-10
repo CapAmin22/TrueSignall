@@ -1,0 +1,100 @@
+@import "tailwindcss";
+
+/* Design tokens — docs/02 §2. Light default, dark via .dark on <html>. */
+:root {
+  --background: #fafaf9;
+  --surface: #ffffff;
+  --border: #e7e5e4;
+  --text: #1c1917;
+  --muted: #78716c;
+  --primary: #4f46e5;
+  --signal: #10b981;
+  --warn: #f59e0b;
+  --hot: #ef4444;
+  --info: #3b82f6;
+  --launch: #8b5cf6;
+  --clip: #0ea5e9;
+}
+
+.dark {
+  --background: #0c0a09;
+  --surface: #1c1917;
+  --border: #292524;
+  --text: #fafaf9;
+  --muted: #a8a29e;
+  --primary: #6366f1;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-border: var(--border);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-primary: var(--primary);
+  --color-signal: var(--signal);
+  --color-warn: var(--warn);
+  --color-hot: var(--hot);
+  --color-info: var(--info);
+  --color-launch: var(--launch);
+  --color-clip: var(--clip);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --radius-card: 10px;
+  --radius-control: 8px;
+}
+
+body {
+  background: var(--background);
+  color: var(--text);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-size: 14px;
+}
+
+/* Feed insert flash — docs/02 §2 motion */
+@keyframes signal-flash {
+  0% {
+    border-left-color: var(--signal);
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  50% {
+    border-left-color: var(--signal);
+  }
+  100% {
+    border-left-color: transparent;
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.feed-insert {
+  animation: signal-flash 2s ease-out;
+  border-left: 2px solid transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .feed-insert {
+    animation: none;
+  }
+  * {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
+/* Focus ring — docs/02 §6 accessibility */
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Print stylesheet for the brief (S6) */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: #fff;
+    color: #000;
+  }
+}

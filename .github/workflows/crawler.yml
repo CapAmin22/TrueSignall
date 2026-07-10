@@ -1,0 +1,49 @@
+# Nightly heavy crawls — docs/11 §4: careers diff + tech detect, sharded,
+# hard 50-min budget guard, health assertion after.
+name: crawler
+on:
+  schedule:
+    - cron: "30 2 * * *" # 02:30 UTC nightly
+  workflow_dispatch:
+
+concurrency: crawler
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50 # hard budget guard (docs/03 §6)
+    strategy:
+      matrix:
+        shard: [0, 1, 2, 3]
+      fail-fast: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npx tsx scripts/crawl.ts --shard=${{ matrix.shard }} --budget-min=42
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          APP_URL: ${{ secrets.APP_URL }}
+
+  health:
+    needs: crawl
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: |
+          curl -fsS -H "Authorization: Bearer $CRON_SECRET" "$APP_URL/api/cron/health" \
+            | npx tsx scripts/assert-freshness.ts
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          APP_URL: ${{ secrets.APP_URL }}

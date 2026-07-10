@@ -1,0 +1,38 @@
+# Daily keep-alive + backup — docs/11 §4/§6: prevents the Supabase free-tier
+# 7-day pause and takes an encrypted nightly pg_dump (14-day artifact retention).
+name: keepalive
+on:
+  schedule:
+    - cron: "0 5 * * *"
+  workflow_dispatch:
+
+jobs:
+  ping-and-backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: keep-alive ping
+        run: |
+          curl -fsS "$SUPABASE_URL/rest/v1/sources?select=key&limit=1" \
+            -H "apikey: $SUPABASE_ANON_KEY" -H "Authorization: Bearer $SUPABASE_ANON_KEY" >/dev/null
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+
+      - name: pg_dump backup (encrypted)
+        if: ${{ env.DB_URL != '' }}
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client age
+          pg_dump "$DB_URL" --format=custom --file=backup.dump
+          echo "$AGE_PUBLIC_KEY" > key.pub
+          age -R key.pub -o backup.dump.age backup.dump
+          rm backup.dump key.pub
+        env:
+          DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          AGE_PUBLIC_KEY: ${{ secrets.BACKUP_AGE_PUBLIC_KEY }}
+
+      - uses: actions/upload-artifact@v4
+        if: ${{ hashFiles('backup.dump.age') != '' }}
+        with:
+          name: db-backup-${{ github.run_id }}
+          path: backup.dump.age
+          retention-days: 14
