@@ -89,6 +89,12 @@ export const copy = {
     pausedNote: "Monitoring of existing accounts never pauses.",
   },
 
+  channel: {
+    title: "Recommended channel",
+    verifySource: "Verify source",
+    capturedFrom: (platform: string) => `Captured from ${platform}`,
+  },
+
   errors: {
     aiBusy: "AI is busy — retry in 60s.",
     retry: "Retry",

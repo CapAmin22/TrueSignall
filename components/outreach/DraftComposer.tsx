@@ -23,6 +23,9 @@ import type { DraftSections } from "@/lib/ai/validate";
 import type { FeedItem } from "@/components/signal/SignalCard";
 import { useDemoStore } from "@/lib/demo/store";
 import { WHY_LINE_FALLBACKS } from "@/lib/signals/taxonomy";
+import { recommendSignalChannel } from "@/lib/channels/recommend";
+import { SourceBadge } from "@/components/shared/SourceBadge";
+import { ChannelGuidance } from "@/components/shared/ChannelGuidance";
 
 const SECTION_LABELS: { key: keyof DraftSections; label: string }[] = [
   { key: "subject", label: "Subject" },
@@ -164,21 +167,33 @@ export function DraftComposer({
 
         <div className="border-b border-border bg-background/60 p-4">
           {items.map(({ signal }) => (
-            <div key={signal.id} className="mb-1 flex items-center gap-2 text-sm text-text">
+            <div key={signal.id} className="mb-1.5 flex items-center gap-2 text-sm text-text">
               <SignalTypeIcon type={signal.type} size="sm" />
-              <span className="truncate">{signal.title}</span>
+              <span className="min-w-0 truncate flex-1">{signal.title}</span>
+              <SourceBadge source={signal.source} sourceUrl={signal.source_url} compact />
             </div>
           ))}
-          <button
-            className="mt-1 text-xs text-primary hover:underline"
-            onClick={() =>
-              void navigator.clipboard.writeText(
-                primary.signal.why_line ?? WHY_LINE_FALLBACKS[primary.signal.type] ?? "",
-              )
-            }
-          >
-            Copy why-now
-          </button>
+          <div className="mt-2 flex items-center gap-3">
+            <button
+              className="text-xs text-primary hover:underline"
+              onClick={() =>
+                void navigator.clipboard.writeText(
+                  primary.signal.why_line ?? WHY_LINE_FALLBACKS[primary.signal.type] ?? "",
+                )
+              }
+            >
+              Copy why-now
+            </button>
+          </div>
+          {/* Channel guidance — based on the primary signal's source */}
+          <div className="mt-2">
+            <ChannelGuidance
+              recommendation={recommendSignalChannel(
+                primary.signal.type,
+                primary.signal.source,
+              )}
+            />
+          </div>
         </div>
 
         <div className="flex-1 space-y-4 p-4">

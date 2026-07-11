@@ -8,9 +8,12 @@
  */
 import Link from "next/link";
 import { useState } from "react";
-import { ExternalLink, Zap, MoreHorizontal, ChevronDown } from "lucide-react";
+import { Zap, MoreHorizontal, ChevronDown } from "lucide-react";
 import { cn, relativeTime } from "@/lib/utils";
 import { copy } from "@/lib/copy";
+import { recommendSignalChannel } from "@/lib/channels/recommend";
+import { SourceBadge } from "@/components/shared/SourceBadge";
+import { ChannelGuidance } from "@/components/shared/ChannelGuidance";
 import { WHY_LINE_FALLBACKS } from "@/lib/signals/taxonomy";
 import { Button } from "@/components/ui/button";
 import { Card, Avatar } from "@/components/ui/primitives";
@@ -88,20 +91,8 @@ export function SignalCard({
         Why now: {signal.why_line ?? WHY_LINE_FALLBACKS[signal.type]}
       </p>
 
-      <p className="mt-2 flex flex-wrap items-center gap-x-2 text-xs text-muted">
-        {signal.source_url ? (
-          <a
-            href={signal.source_url}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-0.5 hover:text-primary"
-          >
-            {signal.source.replace(/_/g, " ")}
-            <ExternalLink size={11} />
-          </a>
-        ) : (
-          <span>{signal.source === "pixel" ? "your website pixel" : signal.source}</span>
-        )}
+      <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted">
+        <SourceBadge source={signal.source} sourceUrl={signal.source_url} compact />
         <span>·</span>
         <span>
           {copy.feed.occurred} {relativeTime(signal.occurred_at)}
@@ -110,7 +101,12 @@ export function SignalCard({
         <span>
           {copy.feed.detected} {relativeTime(signal.detected_at)}
         </span>
-      </p>
+        <span>·</span>
+        <ChannelGuidance
+          recommendation={recommendSignalChannel(signal.type, signal.source)}
+          compact
+        />
+      </div>
 
       {!compact && (
         <div className="mt-3 flex items-center gap-2">

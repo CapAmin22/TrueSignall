@@ -6,21 +6,19 @@
  * touch on the connection so warmth recovers.
  */
 import { useEffect, useState, useTransition } from "react";
-import { X, RefreshCw, Copy, Check, MessageCircle, Mail, MessageSquareShare } from "lucide-react";
-import { generatePersonalNoteAction, type PersonalNote } from "@/app/actions/ai";
+import { X, RefreshCw, Copy, Check } from "lucide-react";
+import { generatePersonalNoteAction } from "@/app/actions/ai";
 import { useDemoStore } from "@/lib/demo/store";
 import { computeWarmth } from "@/lib/relationships/warmth";
 import type { Connection, PersonalSignal } from "@/lib/relationships/types";
 import { relativeTime } from "@/lib/utils";
 import { copy as productCopy } from "@/lib/copy";
+import { recommendMomentChannel, type ChannelRecommendation } from "@/lib/channels/recommend";
+import { ChannelGuidance } from "@/components/shared/ChannelGuidance";
+import { SourceBadge } from "@/components/shared/SourceBadge";
 import { Button } from "@/components/ui/button";
 import { Badge, Skeleton, Textarea } from "@/components/ui/primitives";
 
-const CHANNEL_META = {
-  text: { icon: MessageCircle, label: "Text message" },
-  email: { icon: Mail, label: "Email" },
-  linkedin_dm: { icon: MessageSquareShare, label: "LinkedIn DM" },
-} as const;
 
 export function PersonalNoteComposer({
   connection,
@@ -33,7 +31,7 @@ export function PersonalNoteComposer({
 }) {
   const store = useDemoStore();
   const [note, setNote] = useState("");
-  const [channel, setChannel] = useState<PersonalNote["channel_hint"]>("text");
+  const [channelRec, setChannelRec] = useState<ChannelRecommendation | null>(null);
   const [copied, setCopied] = useState(false);
   const [sent, setSent] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -54,9 +52,13 @@ export function PersonalNoteComposer({
           occurred: relativeTime(moment.occurred_at),
         });
         setNote(result.note);
-        setChannel(result.channel_hint);
+        // Use our deterministic recommender for channel, enriched with warmth
+        setChannelRec(recommendMomentChannel(moment.type, moment.source, warmth.band));
       } catch {
         setNote("");
+        // Still show channel recommendation even if AI fails
+        const warmth = computeWarmth(connection);
+        setChannelRec(recommendMomentChannel(moment.type, moment.source, warmth.band));
       }
     });
   };
@@ -80,7 +82,6 @@ export function PersonalNoteComposer({
     setTimeout(onClose, 900);
   };
 
-  const ChannelIcon = CHANNEL_META[channel].icon;
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-black/30" onClick={onClose}>
@@ -116,10 +117,17 @@ export function PersonalNoteComposer({
             />
           )}
 
-          <div className="flex items-center gap-2 text-xs text-muted">
-            <ChannelIcon size={13} />
-            Suggested channel: {CHANNEL_META[channel].label}
-          </div>
+          {/* Source traceability */}
+          {moment.source_url && (
+            <div className="flex items-center gap-2">
+              <SourceBadge source={moment.source} sourceUrl={moment.source_url} />
+            </div>
+          )}
+
+          {/* Channel guidance with reasoning */}
+          {channelRec && (
+            <ChannelGuidance recommendation={channelRec} />
+          )}
         </div>
 
         <div className="flex items-center gap-2 border-t border-border p-4">

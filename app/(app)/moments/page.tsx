@@ -31,6 +31,9 @@ import {
 } from "@/lib/relationships/warmth";
 import type { Connection, PersonalSignal, PersonalSignalType } from "@/lib/relationships/types";
 import { PersonalNoteComposer } from "@/components/network/PersonalNoteComposer";
+import { SourceBadge } from "@/components/shared/SourceBadge";
+import { ChannelGuidance } from "@/components/shared/ChannelGuidance";
+import { recommendMomentChannel } from "@/lib/channels/recommend";
 import { EmptyState } from "@/components/shared/EmptyState";
 import { Button } from "@/components/ui/button";
 import { Badge, Card } from "@/components/ui/primitives";
@@ -119,14 +122,24 @@ export default function MomentsPage() {
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium text-text">{moment.title}</p>
                   {moment.detail && <p className="mt-0.5 text-xs text-muted">{moment.detail}</p>}
-                  <p className="mt-1 text-xs text-muted">
+                  <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted">
                     {connection.title ? `${connection.title}` : "Connection"}
                     {connection.company_name ? ` · ${connection.company_name}` : ""} ·{" "}
                     <span className="capitalize">{warmth.band}</span> relationship ·{" "}
-                    {moment.source === "birthday_calendar"
-                      ? "from your contacts"
-                      : `detected ${relativeTime(moment.occurred_at)}`}
+                    <SourceBadge source={moment.source} sourceUrl={moment.source_url} compact />
+                    {moment.source !== "birthday_calendar" && (
+                      <>
+                        <span>·</span>
+                        <span>detected {relativeTime(moment.occurred_at)}</span>
+                      </>
+                    )}
                   </p>
+                  <div className="mt-1.5">
+                    <ChannelGuidance
+                      recommendation={recommendMomentChannel(moment.type, moment.source, warmth.band)}
+                      compact
+                    />
+                  </div>
                 </div>
                 <Badge tone="signal" className="shrink-0 capitalize">
                   {momentLabel(moment.type)}
